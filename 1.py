@@ -18,20 +18,21 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN or response is None:
-            if event.key == pygame.K_UP:
-                coords[1] = str(float(coords[1]) + float(spn[1]))
-            elif event.key == pygame.K_DOWN:
-                coords[1] = str(float(coords[1]) - float(spn[1]))
-            elif event.key == pygame.K_RIGHT:
-                coords[0] = str(float(coords[0]) + float(spn[0]))
-            elif event.key == pygame.K_LEFT:
-                coords[0] = str(float(coords[0]) - float(spn[0]))
-            elif event.key == pygame.K_PAGEDOWN:
-                if spn - 5 >= 0:
-                    spn -= 5
-            elif event.key == pygame.K_PAGEUP:
-                if spn + 5 < 95:
-                    spn += 5
+            if response:
+                if event.key == pygame.K_UP:
+                    coords[1] = str(float(coords[1]) + float(spn[1]))
+                elif event.key == pygame.K_DOWN:
+                    coords[1] = str(float(coords[1]) - float(spn[1]))
+                elif event.key == pygame.K_RIGHT:
+                    coords[0] = str(float(coords[0]) + float(spn[0]))
+                elif event.key == pygame.K_LEFT:
+                    coords[0] = str(float(coords[0]) - float(spn[0]))
+                elif event.key == pygame.K_PAGEDOWN:
+                    if spn - 5 >= 0:
+                        spn -= 5
+                elif event.key == pygame.K_PAGEUP:
+                    if spn + 5 < 95:
+                        spn += 5
 
             map_request = f'https://static-maps.yandex.ru/1.x/?ll={coords}&spn={",".join([str(spn)] * 2)}&l=sat'
             response = requests.get(map_request)
