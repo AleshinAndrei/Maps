@@ -3,33 +3,52 @@ import sys
 import pygame
 import requests
 
-response = None
-coords = input("Введите координаты в формате 'долгота,широта':  ")
-spn = input("Введите масштаб через ',' без пробелов:  ")
-map_request = f'https://static-maps.yandex.ru/1.x/?ll={coords}&spn={spn}&l=sat'
-response = requests.get(map_request)
-
-if not response:
-    print("Ошибка выполнения запроса:")
-    print(map_request)
-    print("Http статус:", response.status_code, "(", response.reason, ")")
-    sys.exit(1)
-
-# Запишем полученное изображение в файл.
 map_file = "map.png"
-with open(map_file, "wb") as file:
-    file.write(response.content)
+coords = list(map(float, input("Введите координаты в формате 'долгота,широта':  ").split(",")))
+z = int(input("Введите масштаб от 0 до 17, где 0 - это весь земной шар:  "))
 
-# Инициализируем pygame
 pygame.init()
-screen = pygame.display.set_mode((600, 450))
-# Рисуем картинку, загружаемую из только что созданного файла.
-screen.blit(pygame.image.load(map_file), (0, 0))
-# Переключаем экран и ждем закрытия окна.
-pygame.display.flip()
-while pygame.event.wait().type != pygame.QUIT:
-    pass
-pygame.quit()
+screen = pygame.display.set_mode((450, 450))
 
-# Удаляем за собой файл с изображением.
+running = True
+change = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key in {pygame.K_PAGEDOWN, pygame.K_KP3}:
+                # у меня на компе на этих кнопках написано PgUp и PgDn, но pygame их неправильно определяет
+                if z > 0:
+                    z -= 1
+            elif event.key in {pygame.K_PAGEUP, pygame.K_KP9}:
+                if z < 17:
+                    z += 1
+
+            change = True
+
+    if change:
+        map_api_server = 'https://static-maps.yandex.ru/1.x/'
+        params = {
+            "l": "sat",
+            "z": z,
+            "ll": ','.join(map(str, coords)),
+            "size": "450,450",
+        }
+        response = requests.get(map_api_server, params=params)
+        if not response:
+            print("Ошибка выполнения запроса:")
+            print(params)
+            print("Http статус:", response.status_code, "(", response.reason, ")")
+            sys.exit(1)
+
+        with open(map_file, "wb") as file:
+            file.write(response.content)
+
+        screen.blit(pygame.image.load(map_file), (0, 0))
+        pygame.display.flip()
+
+    change = False
+
+pygame.quit()
 os.remove(map_file)
