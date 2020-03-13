@@ -17,6 +17,14 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                coords[1] = (coords[1] + 180.0 / (2 ** z) + 90) % 180 - 90
+            elif event.key == pygame.K_DOWN:
+                coords[1] = (coords[1] - 180.0 / (2 ** z) + 90) % 180 - 90
+            elif event.key == pygame.K_RIGHT:
+                coords[0] = (coords[0] + 360.0 / (2 ** z) + 180) % 360 - 180
+            elif event.key == pygame.K_LEFT:
+                coords[0] = (coords[0] - 360.0 / (2 ** z) + 180) % 360 - 180
             if event.key == pygame.K_PAGEDOWN:
                 if z > 0:
                     z -= 1
