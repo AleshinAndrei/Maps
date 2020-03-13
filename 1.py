@@ -25,10 +25,11 @@ while running:
                 coords[0] = (coords[0] + 360.0 / (2 ** z) + 180) % 360 - 180
             elif event.key == pygame.K_LEFT:
                 coords[0] = (coords[0] - 360.0 / (2 ** z) + 180) % 360 - 180
-            if event.key == pygame.K_PAGEDOWN:
+            if event.key in {pygame.K_PAGEDOWN, pygame.K_KP3}:
+                # у меня на компе на этих кнопках написано PgUp и PgDn, но pygame их неправильно определяет
                 if z > 0:
                     z -= 1
-            elif event.key == pygame.K_PAGEUP:
+            elif event.key in {pygame.K_PAGEUP, pygame.K_KP9}:
                 if z < 17:
                     z += 1
 
