@@ -10,6 +10,12 @@ z = int(input("Введите масштаб от 0 до 17, где 0 - это �
 pygame.init()
 screen = pygame.display.set_mode((450, 450))
 
+q = 'sat'
+f1 = pygame.font.Font(None, 25)
+text1 = f1.render('Спутник', 1, (180, 0, 0))
+text2 = f1.render('Карта', 1, (0, 180, 0))
+text3 = f1.render('Гибрид', 1, (0, 180, 0))
+
 running = True
 change = True
 while running:
@@ -32,13 +38,32 @@ while running:
             elif event.key in {pygame.K_PAGEUP, pygame.K_KP9}:
                 if z < 17:
                     z += 1
+            change = True
 
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            pos = event.pos
+            # может лучше делать через спрайты? Нет так нет, как хочешь
+            if pos[0] <= 65 and pos[1] <= 23:
+                q = 'sat'
+                text1 = f1.render('Спутник', 1, (180, 0, 0))
+                text2 = f1.render('Карта', 1, (0, 180, 0))
+                text3 = f1.render('Гибрид', 1, (0, 180, 0))
+            elif 70 <= pos[0] <= 120 and pos[1] <= 23:
+                q = 'map'
+                text1 = f1.render('Спутник', 1, (0, 180, 0))
+                text2 = f1.render('Карта', 1, (180, 0, 0))
+                text3 = f1.render('Гибрид', 1, (0, 180, 0))
+            elif 123 <= pos[0] <= 190 and pos[1] <= 23:
+                q = 'sat,skl'
+                text1 = f1.render('Спутник', 1, (0, 180, 0))
+                text2 = f1.render('Карта', 1, (0, 180, 0))
+                text3 = f1.render('Гибрид', 1, (180, 0, 0))
             change = True
 
     if change:
         map_api_server = 'https://static-maps.yandex.ru/1.x/'
         params = {
-            "l": "sat",
+            "l": q,
             "z": z,
             "ll": ','.join(map(str, coords)),
             "size": "450,450",
@@ -50,11 +75,15 @@ while running:
             print("Http статус:", response.status_code, "(", response.reason, ")")
             sys.exit(1)
 
-        with open(map_file, "wb") as file:
-            file.write(response.content)
+        else:
+            with open(map_file, "wb") as file:
+                file.write(response.content)
 
-        screen.blit(pygame.image.load(map_file), (0, 0))
-        pygame.display.flip()
+            screen.blit(pygame.image.load(map_file), (0, 0))
+            screen.blit(text1, (0, 5))
+            screen.blit(text2, (70, 5))
+            screen.blit(text3, (125, 5))
+            pygame.display.flip()
 
     change = False
 
