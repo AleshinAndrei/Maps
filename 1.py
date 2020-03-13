@@ -17,11 +17,10 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
-            if event.key in {pygame.K_PAGEDOWN, pygame.K_KP3}:
-                # у меня на компе на этих кнопках написано PgUp и PgDn, но pygame их неправильно определяет
+            if event.key == pygame.K_PAGEDOWN:
                 if z > 0:
                     z -= 1
-            elif event.key in {pygame.K_PAGEUP, pygame.K_KP9}:
+            elif event.key == pygame.K_PAGEUP:
                 if z < 17:
                     z += 1
 
