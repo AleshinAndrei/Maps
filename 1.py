@@ -60,6 +60,7 @@ f1 = pygame.font.Font(None, 25)
 text1 = f1.render('Спутник', 1, (180, 0, 0))
 text2 = f1.render('Карта', 1, (0, 180, 0))
 text3 = f1.render('Гибрид', 1, (0, 180, 0))
+text4 = f1.render('Найти', 1, (250, 250, 0), (0, 0, 0))
 
 running = True
 change = True
@@ -138,6 +139,7 @@ while running:
             screen.blit(text1, (0, 5))
             screen.blit(text2, (70, 5))
             screen.blit(text3, (125, 5))
+            screen.blit(text4, (0, 30))
             pygame.display.flip()
 
     change = False
