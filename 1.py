@@ -26,8 +26,9 @@ def form_map_request(find):
         # Печатаем извлечённые из ответа поля:
         coord = toponym_coodrinates.split(' ')
         coord = list(map(float, coord))
-        global coords
-        coords = coord
+        global coords, marker_coords
+        coords = coord[:]
+        marker_coords = coord[:]
     else:
         print("Ошибка выполнения запроса:")
         print(geocoder_request)
@@ -48,7 +49,7 @@ class MyWidget(QMainWindow, QWidget):
 
 
 map_file = "map.png"
-coords = list(map(float, input("Введите координаты в формате 'долгота,широта':  ").split(",")))
+coords = list(map(float, input("Введите координаты в формате 'долгота,широта':  ").split(",")))[:]
 z = int(input("Введите масштаб от 0 до 17, где 0 - это весь земной шар:  "))
 
 pygame.init()
@@ -56,12 +57,14 @@ screen = pygame.display.set_mode((450, 450))
 
 ex = ''
 marker = False
+marker_coords = coords[:]
 q = 'sat'
 f1 = pygame.font.Font(None, 25)
 text1 = f1.render('Спутник', 1, (180, 0, 0))
 text2 = f1.render('Карта', 1, (0, 180, 0))
 text3 = f1.render('Гибрид', 1, (0, 180, 0))
 text4 = f1.render('Найти', 1, (250, 250, 0), (0, 0, 0))
+# text5 = f1.render('Сброс поискового результата', 1, (200, 200, 0), (0, 0, 0))
 
 running = True
 change = True
@@ -108,6 +111,8 @@ while running:
                 app = QApplication(sys.argv)
                 ex = MyWidget()
                 ex.show()
+            # elif 60 <= pos[0] <= 305 and 30 <= pos[1] <= 50:
+            #     marker = False
             change = True
 
     if ex != '' and ex.is_clicked:
@@ -121,10 +126,11 @@ while running:
     if change:
         map_api_server = 'https://static-maps.yandex.ru/1.x/'
         if marker:
-            a = ','.join(map(str, coords)) + ',pmwts'
+            a = ','.join(map(str, marker_coords)) + ',pmwts'
             params = {
                 "l": q,
                 "z": z,
+                "ll": ','.join(map(str, coords)),
                 "pt": a,
                 "size": "450,450",
             }
@@ -136,7 +142,6 @@ while running:
                 "size": "450,450",
             }
         response = requests.get(map_api_server, params=params)
-        marker = False
         if not response:
             print("Ошибка выполнения запроса:")
             print(params)
@@ -152,6 +157,7 @@ while running:
             screen.blit(text2, (70, 5))
             screen.blit(text3, (125, 5))
             screen.blit(text4, (0, 30))
+            # screen.blit(text5, (60, 30))
             pygame.display.flip()
 
     change = False
