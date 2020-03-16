@@ -43,8 +43,8 @@ class MyWidget(QMainWindow, QWidget):
         self.btn_search.clicked.connect(self.search)
 
     def search(self):
-        self.is_clicked = True
         self.text = self.line.text()
+        self.is_clicked = True
 
 
 map_file = "map.png"
@@ -55,6 +55,7 @@ pygame.init()
 screen = pygame.display.set_mode((450, 450))
 
 ex = ''
+marker = False
 q = 'sat'
 f1 = pygame.font.Font(None, 25)
 text1 = f1.render('Спутник', 1, (180, 0, 0))
@@ -115,16 +116,27 @@ while running:
         ex = ''
         form_map_request(find)
         change = True
+        marker = True
 
     if change:
         map_api_server = 'https://static-maps.yandex.ru/1.x/'
-        params = {
-            "l": q,
-            "z": z,
-            "ll": ','.join(map(str, coords)),
-            "size": "450,450",
-        }
+        if marker:
+            a = ','.join(map(str, coords)) + ',pmwts'
+            params = {
+                "l": q,
+                "z": z,
+                "pt": a,
+                "size": "450,450",
+            }
+        else:
+            params = {
+                "l": q,
+                "z": z,
+                "ll": ','.join(map(str, coords)),
+                "size": "450,450",
+            }
         response = requests.get(map_api_server, params=params)
+        marker = False
         if not response:
             print("Ошибка выполнения запроса:")
             print(params)
