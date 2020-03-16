@@ -64,7 +64,7 @@ text1 = f1.render('Спутник', 1, (180, 0, 0))
 text2 = f1.render('Карта', 1, (0, 180, 0))
 text3 = f1.render('Гибрид', 1, (0, 180, 0))
 text4 = f1.render('Найти', 1, (250, 250, 0), (0, 0, 0))
-# text5 = f1.render('Сброс поискового результата', 1, (200, 200, 0), (0, 0, 0))
+text5 = f1.render('Сброс поискового результата', 1, (200, 200, 0), (0, 0, 0))
 
 running = True
 change = True
@@ -111,8 +111,8 @@ while running:
                 app = QApplication(sys.argv)
                 ex = MyWidget()
                 ex.show()
-            # elif 60 <= pos[0] <= 305 and 30 <= pos[1] <= 50:
-            #     marker = False
+            elif 60 <= pos[0] <= 305 and 30 <= pos[1] <= 50:
+                marker = False
             change = True
 
     if ex != '' and ex.is_clicked:
@@ -157,7 +157,7 @@ while running:
             screen.blit(text2, (70, 5))
             screen.blit(text3, (125, 5))
             screen.blit(text4, (0, 30))
-            # screen.blit(text5, (60, 30))
+            screen.blit(text5, (60, 30))
             pygame.display.flip()
 
     change = False
