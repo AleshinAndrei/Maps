@@ -3,7 +3,7 @@ import sys
 import pygame
 import requests
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget
 
 
 def form_map_request(find):
@@ -18,24 +18,26 @@ def form_map_request(find):
         # Получаем первый топоним из ответа геокодера.
         # Согласно описанию ответа, он находится по следующему пути:
         toponym = json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
-        # Полный адрес топонима:
-        toponym_address = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
         # Координаты центра топонима:
         toponym_coodrinates = toponym["Point"]["pos"]
 
         # Печатаем извлечённые из ответа поля:
-        coord = toponym_coodrinates.split(' ')
-        coord = list(map(float, coord))
-        global coords, marker_coords
+        coord = list(map(float, toponym_coodrinates.split(' ')))
+        global coords, marker_coords, toponym_address
+        # помнишь, что нам говорили про глобальныепеременные? Не надо так со мной обращаться,
+        # ты этот код не одна пишешь
+        # Полный адрес топонима:
+        toponym_address = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
         coords = coord[:]
         marker_coords = coord[:]
+        
     else:
         print("Ошибка выполнения запроса:")
         print(geocoder_request)
         print("Http статус:", response.status_code, "(", response.reason, ")")
 
 
-class MyWidget(QMainWindow, QWidget):
+class MyWidget(QWidget):
     def __init__(self):
         super().__init__()
         uic.loadUi('search.ui', self)
@@ -55,16 +57,20 @@ z = int(input("Введите масштаб от 0 до 17, где 0 - это �
 pygame.init()
 screen = pygame.display.set_mode((450, 450))
 
-ex = ''
+ex = None
 marker = False
+display_address = False
+toponym_address = ""
 marker_coords = coords[:]
-q = 'sat'
-f1 = pygame.font.Font(None, 25)
-text1 = f1.render('Спутник', 1, (180, 0, 0))
-text2 = f1.render('Карта', 1, (0, 180, 0))
-text3 = f1.render('Гибрид', 1, (0, 180, 0))
-text4 = f1.render('Найти', 1, (250, 250, 0), (0, 0, 0))
-text5 = f1.render('Сброс поискового результата', 1, (200, 200, 0), (0, 0, 0))
+map_type = 'sat'
+selected_map = 0
+font = pygame.font.Font(None, 25)
+text1 = font.render('Спутник', 1, (180, 0, 0))
+text2 = font.render('Карта', 1, (0, 180, 0))
+text3 = font.render('Гибрид', 1, (0, 180, 0))
+text4 = font.render('Найти', 1, (250, 250, 0), (0, 0, 0))
+text5 = font.render('Сброс поискового результата', 1, (200, 200, 0), (0, 0, 0))
+text6 = font.render(toponym_address, 1, (250, 250, 0), (0, 0, 0))
 
 running = True
 change = True
@@ -81,62 +87,65 @@ while running:
                 coords[0] = (coords[0] + 360.0 / (2 ** z) + 180) % 360 - 180
             elif event.key == pygame.K_LEFT:
                 coords[0] = (coords[0] - 360.0 / (2 ** z) + 180) % 360 - 180
-            if event.key == pygame.K_PAGEDOWN:
+            if event.key in {pygame.K_PAGEDOWN, pygame.K_KP3}:
                 # у меня на компе на этих кнопках написано PgUp и PgDn, но pygame их неправильно определяет
                 if z > 0:
                     z -= 1
-            elif event.key == pygame.K_PAGEUP:
+            elif event.key in {pygame.K_PAGEUP, pygame.K_KP9}:
                 if z < 17:
                     z += 1
             change = True
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = event.pos
-            if pos[0] <= 65 and pos[1] <= 23:
-                q = 'sat'
-                text1 = f1.render('Спутник', 1, (180, 0, 0))
-                text2 = f1.render('Карта', 1, (0, 180, 0))
-                text3 = f1.render('Гибрид', 1, (0, 180, 0))
+            if 0 <= pos[0] <= 65 and 0 <= pos[1] <= 23:
+                map_type = 'sat'
+                selected_map = 0
             elif 70 <= pos[0] <= 120 and pos[1] <= 23:
-                q = 'map'
-                text1 = f1.render('Спутник', 1, (0, 180, 0))
-                text2 = f1.render('Карта', 1, (180, 0, 0))
-                text3 = f1.render('Гибрид', 1, (0, 180, 0))
+                map_type = 'map'
+                selected_map = 1
             elif 123 <= pos[0] <= 190 and pos[1] <= 23:
-                q = 'sat,skl'
-                text1 = f1.render('Спутник', 1, (0, 180, 0))
-                text2 = f1.render('Карта', 1, (0, 180, 0))
-                text3 = f1.render('Гибрид', 1, (180, 0, 0))
+                map_type = 'sat,skl'
+                selected_map = 2
             elif pos[0] <= 50 and 30 <= pos[1] <= 50:
                 app = QApplication(sys.argv)
                 ex = MyWidget()
                 ex.show()
             elif 60 <= pos[0] <= 305 and 30 <= pos[1] <= 50:
                 marker = False
+                display_address = False
+            text1 = font.render('Спутник', 1,
+                                (180, 0, 0) if selected_map == 0 else (0, 180, 0))
+            text2 = font.render('Карта', 1,
+                                (180, 0, 0) if selected_map == 1 else (0, 180, 0))
+            text3 = font.render('Гибрид', 1,
+                                (180, 0, 0) if selected_map == 2 else (0, 180, 0))
             change = True
 
-    if ex != '' and ex.is_clicked:
+    if ex is not None and ex.is_clicked:
         find = ex.text
         ex.close()
-        ex = ''
+        ex = None
         form_map_request(find)
         change = True
         marker = True
+        display_address = True
+        text6 = font.render(toponym_address, 1, (250, 250, 0), (0, 0, 0))
 
     if change:
         map_api_server = 'https://static-maps.yandex.ru/1.x/'
         if marker:
-            a = ','.join(map(str, marker_coords)) + ',pmwts'
+            pt = ','.join(map(str, marker_coords)) + ',pm2dbl'
             params = {
-                "l": q,
+                "l": map_type,
                 "z": z,
                 "ll": ','.join(map(str, coords)),
-                "pt": a,
+                "pt": pt,
                 "size": "450,450",
             }
         else:
             params = {
-                "l": q,
+                "l": map_type,
                 "z": z,
                 "ll": ','.join(map(str, coords)),
                 "size": "450,450",
@@ -149,6 +158,7 @@ while running:
             sys.exit(1)
 
         else:
+
             with open(map_file, "wb") as file:
                 file.write(response.content)
 
@@ -158,6 +168,8 @@ while running:
             screen.blit(text3, (125, 5))
             screen.blit(text4, (0, 30))
             screen.blit(text5, (60, 30))
+            if display_address:
+                screen.blit(text6, (0, 85))
             pygame.display.flip()
 
     change = False
